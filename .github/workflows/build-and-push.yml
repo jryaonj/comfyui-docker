@@ -33,7 +33,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_OWNER: ${{ github.repository_owner }}
   CUDA_TAG: cu128
-  CUDA_VERS: 12.8
+  CUDA_VERS: 12.8.1
   # Use workflow-dispatch input if provided, otherwise fall back to default
   COMFYUI_VERSION: ${{ github.event.inputs.comfyui_version || 'v0.3.40' }}
 
