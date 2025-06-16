@@ -1,25 +1,30 @@
 # -------------------------------------------------------------------------
 # Stage 0: Torch + uv only (rarely changes)  ==> comfyui-torch-base:cu128
 # -------------------------------------------------------------------------
-FROM nvidia/cuda:12.8.1-runtime-ubuntu22.04 AS torch-base
+FROM nvidia/cuda:${CUDA_TAG}-runtime-ubuntu22.04 AS torch-base
 
 ARG PYTHON_VERSION=3.12
 ARG DEBIAN_FRONTEND=noninteractive
+
+ARG TORCH_VERSION=2.7.1
+ARG TORCHAUDIO_VERSION=2.7.1
+ARG TORCHVISION_VERSION=0.22.1
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     software-properties-common curl git ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -L https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-musl.tar.gz | \
-    tar -xz -C /usr/local/bin && mv /usr/local/bin/uv-x86_64-unknown-linux-musl/uv* /usr/local/bin/ && \
-    rm -rf /usr/local/bin/uv-x86_64-unknown-linux-musl
+# Use the official installer which picks the correct binary for amd64/arm64 at build time.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -b /usr/local/bin
 
 WORKDIR /opt/comfyui-torch
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv python install 3.12 && uv venv && uv run python --version && \
-    uv pip install torch torchvision torchaudio \
+    uv pip install torch==${TORCH_VERSION} \
+        torchaudio==${TORCHAUDIO_VERSION} \
+        torchvision==${TORCHVISION_VERSION} \
         --index-url https://download.pytorch.org/whl/cu128
 
 # Quick smoke-test (build-time).

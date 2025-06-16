@@ -93,4 +93,30 @@ aria2c -R -s 8 -j 8 --continue=true \
 
 ---
 
+## ⚠️ License & Redistribution Notice
+
+This repository's Dockerfiles build **on top of** the public `nvidia/cuda:*` base images.  Those
+images, and the CUDA libraries contained within, are **not** licensed under the same terms as
+this repository's source code. They are covered by the
+[NVIDIA End-User License Agreement for CUDA](https://docs.nvidia.com/cuda/eula/index.html)
+and by the
+[Notice to Redistributors of NVIDIA Container Images](https://developer.nvidia.com/nvidia-container-runtime-license).
+
+Key points you should be aware of when **redistributing** any image produced from these
+Dockerfiles (including images published to GHCR):
+
+1. **No commercial resale of CUDA software** – you may not charge a fee for the CUDA
+   components themselves.  You may only charge a *nominal fee* for physical media or
+   bandwidth used to deliver the container image.
+2. **Preserve the EULA** – a copy of, or a link to, the NVIDIA CUDA EULA must accompany
+   the redistributed image.
+3. **Do not remove copyright / license notices** inside the container.
+
+The authors of this repository are **not affiliated with NVIDIA** and provide these build
+scripts *as-is*, **without any warranty of fitness for a particular purpose**.  By using,
+building, or distributing the resulting images **you accept all responsibility for
+complying with the applicable NVIDIA licenses.**
+
+---
+
 Enjoy your local ComfyUI setup! 🚀

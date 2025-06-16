@@ -1,0 +1,103 @@
+name: Build and push ComfyUI images to GHCR
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "./**"
+      - ".github/workflows/build-and-push.yml"
+  workflow_dispatch:
+    inputs:
+      cuda_version:
+        description: "Override CUDA version (e.g. cu128)"
+        required: true
+        default: "cu128"
+      comfyui_version:
+        description: "Override ComfyUI version (e.g. v0.3.40)"
+        required: false
+        default: "v0.3.40"
+      torch_version:
+        description: "Override PyTorch version (e.g. 2.7.1)"
+        required: false
+        default: "2.7.1"
+      torchaudio_version:
+        description: "Override Torchaudio version (e.g. 2.7.1)"
+        default: "2.7.1"
+        required: false
+      torchvision_version:
+        description: "Override Torchaudio version (e.g. 0.22.1)"
+        default: "0.22.1"
+        required: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.repository_owner }}
+  CUDA_TAG: cu128
+  # Use workflow-dispatch input if provided, otherwise fall back to default
+  COMFYUI_VERSION: ${{ github.event.inputs.comfyui_version || 'v0.3.40' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CUDA_TAG: ${{ github.event.inputs.cuda_version }}
+      TORCH_VERSION:       ${{ github.event.inputs.torch_version }}
+      TORCHAUDIO_VERSION:  ${{ github.event.inputs.torchaudio_version }}
+      TORCHVISION_VERSION: ${{ github.event.inputs.torchvision_version }}
+
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (multi-arch emulation)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: "linux/amd64,linux/arm64"
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------------------------------------------
+      # Build & push the Torch base layer first so the main image can depend
+      # on it via the local "comfyui-torch-base:cu128" tag.
+      # -------------------------------------------------------------------
+      - name: Build & push torch-base image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.torch-base
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui-torch-base:${{ env.CUDA_TAG }}
+          labels: |
+            org.opencontainers.image.description=ComfyUI base image (amd64, arm64) with Torch ${{ env.TORCH_VERSION }} and CUDA ${{ env.CUDA_TAG }} runtime. Includes NVIDIA CUDA Toolkit components - see https://docs.nvidia.com/cuda/eula/index.html
+
+      # -------------------------------------------------------------------
+      # Build & push the final ComfyUI runtime image.
+      # -------------------------------------------------------------------
+      - name: Build & push ComfyUI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.comfyui
+          build-args: |
+            COMFYUI_VERSION=${{ env.COMFYUI_VERSION }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui:${{ env.COMFYUI_VERSION }}-${{ env.CUDA_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui:latest      
+          labels: |
+            org.opencontainers.image.description=ComfyUI ${{ env.COMFYUI_VERSION }} image (amd64, arm64) with Torch ${{ env.TORCH_VERSION }} and CUDA ${{ env.CUDA_TAG }} runtime. Includes NVIDIA CUDA Toolkit components - see https://docs.nvidia.com/cuda/eula/index.html
