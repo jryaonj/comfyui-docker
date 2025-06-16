@@ -4,8 +4,10 @@ on:
   push:
     branches: [ "master" ]
     paths:
-      - "./**"
+      - "./Dockerfile.comfyui"
+      - "./Dockerfile.torch-base"
       - ".github/workflows/build-and-push.yml"
+      
   workflow_dispatch:
     inputs:
       cuda_version:
