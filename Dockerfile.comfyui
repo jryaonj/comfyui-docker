@@ -5,6 +5,7 @@
 ARG CUDA_TAG=cu128
 FROM ghcr.io/jryaonj/comfyui-docker:base-torch${TORCH_VERSION}-${CUDA_TAG} AS comfyui
 
+ARG TARGETARCH
 ARG PYTHON_VERSION=3.12
 ARG DEBIAN_FRONTEND=noninteractive
 ARG COMFYUI_VERSION=v0.3.40

@@ -2,9 +2,9 @@
 # Stage 0: Torch + uv only (rarely changes)  ==> comfyui-torch-base:cu128
 # -------------------------------------------------------------------------
 ARG CUDA_VERS=12.8.1
-ARG TARGETARCH
 FROM nvidia/cuda:${CUDA_VERS}-runtime-ubuntu22.04 AS torch-base
 
+ARG TARGETARCH
 ARG PYTHON_VERSION=3.12
 ARG DEBIAN_FRONTEND=noninteractive
 
