@@ -33,6 +33,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_OWNER: ${{ github.repository_owner }}
   CUDA_TAG: cu128
+  CUDA_VERS: 12.8
   # Use workflow-dispatch input if provided, otherwise fall back to default
   COMFYUI_VERSION: ${{ github.event.inputs.comfyui_version || 'v0.3.40' }}
 
@@ -92,6 +93,8 @@ jobs:
           file: ./Dockerfile.torch-base
           platforms: linux/amd64,linux/arm64
           build-args: |
+            CUDA_TAG=${{ env.CUDA_TAG }}
+            CUDA_VERS=${{ env.CUDA_VERS }}
             TORCH_VERSION=${{ env.TORCH_VERSION }}
             TORCHAUDIO_VERSION=${{ env.TORCHAUDIO_VERSION }}
             TORCHVISION_VERSION=${{ env.TORCHVISION_VERSION }}
@@ -120,6 +123,8 @@ jobs:
           context: .
           file: ./Dockerfile.comfyui
           build-args: |
+            CUDA_TAG=${{ env.CUDA_TAG }}
+            CUDA_VERS=${{ env.CUDA_VERS }}
             TORCH_VERSION=${{ env.TORCH_VERSION }}
             TORCHAUDIO_VERSION=${{ env.TORCHAUDIO_VERSION }}
             TORCHVISION_VERSION=${{ env.TORCHVISION_VERSION }}

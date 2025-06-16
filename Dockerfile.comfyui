@@ -2,6 +2,7 @@
 # Stage 1: actual ComfyUI layer  ==> comfyui:cu128
 # -------------------------------------------------------------------------
 # FROM comfyui-torch-base:cu128 AS comfyui
+ARG CUDA_TAG=cu128
 FROM ghcr.io/jryaonj/comfyui-docker:base-torch${TORCH_VERSION}-${CUDA_TAG} AS comfyui
 
 ARG PYTHON_VERSION=3.12
