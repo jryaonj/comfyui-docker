@@ -3,6 +3,7 @@
 # -------------------------------------------------------------------------
 # FROM comfyui-torch-base:cu128 AS comfyui
 ARG CUDA_TAG=cu128
+ARG TORCH_VERSION=2.7.1
 FROM ghcr.io/jryaonj/torch-base:${TORCH_VERSION}-${CUDA_TAG} AS torch-base
 
 ARG TARGETARCH
