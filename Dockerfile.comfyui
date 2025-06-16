@@ -3,7 +3,7 @@
 # -------------------------------------------------------------------------
 # FROM comfyui-torch-base:cu128 AS comfyui
 ARG CUDA_TAG=cu128
-FROM ghcr.io/jryaonj/comfyui-docker:base-torch${TORCH_VERSION}-${CUDA_TAG} AS comfyui
+FROM ghcr.io/jryaonj/torch-base:${TORCH_VERSION}-${CUDA_TAG} AS torch-base
 
 ARG TARGETARCH
 ARG PYTHON_VERSION=3.12

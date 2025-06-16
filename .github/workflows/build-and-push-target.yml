@@ -1,12 +1,11 @@
-name: Build and push ComfyUI images to GHCR
+name: Build and push ComfyUI target image to GHCR
 
 on:
   push:
     branches: [ "master" ]
     paths:
       - "Dockerfile.comfyui"
-      - "Dockerfile.torch-base"
-      - ".github/workflows/build-and-push.yml"
+      - ".github/workflows/build-and-push-target.yml"
       
   workflow_dispatch:
     inputs:
@@ -85,38 +84,16 @@ jobs:
       #     username: ${{ secrets.DOCKERHUB_USERNAME }}
       #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # -------------------------------------------------------------------
-      # Build & push the Torch base layer first so the main image can depend
-      # on it via the local "comfyui-torch-base:cu128" tag.
-      # -------------------------------------------------------------------
-      - name: Build & push torch-base image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile.torch-base
-          # no space between platforms, only build amd64 for now
-          platforms: linux/amd64
-          build-args: |
-            CUDA_TAG=${{ env.CUDA_TAG }}
-            CUDA_VERS=${{ env.CUDA_VERS }}
-            TORCH_VERSION=${{ env.TORCH_VERSION }}
-            TORCHAUDIO_VERSION=${{ env.TORCHAUDIO_VERSION }}
-            TORCHVISION_VERSION=${{ env.TORCHVISION_VERSION }}
-            COMFYUI_VERSION=${{ env.COMFYUI_VERSION }}
-          push: true
-          # Push to GitHub Container Registry (GHCR)
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui-torch-base:torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
-          # -------------------------------------------------------------------
-          # Optional: uncomment the lines below to additionally push to Docker Hub.
-          # Make sure to add DOCKERHUB_USERNAME / DOCKERHUB_TOKEN secrets and
-          # enable the "Log in to Docker Hub" step further below.
-          # -------------------------------------------------------------------
-          # tags: |
-          #   ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui-torch-base:torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
-          #   docker.io/${{ secrets.DOCKERHUB_USERNAME }}/comfyui-torch-base:torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
-          labels: |
-            org.opencontainers.image.description=ComfyUI base image (amd64, arm64) with Torch ${{ env.TORCH_VERSION }} and CUDA ${{ env.CUDA_TAG }} runtime. Includes NVIDIA CUDA Toolkit components - see https://docs.nvidia.com/cuda/eula/index.html
+      - name: Wait for base image to be available
+        timeout-minutes: 20
+        run: |
+          echo "Waiting for base image: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/torch-base:${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}"
+          until docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/torch-base:${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }} &> /dev/null
+          do
+            echo "Base image not yet available. Waiting 30 seconds..."
+            sleep 30
+          done
+          echo "Base image found. Proceeding with the build."
 
       # -------------------------------------------------------------------
       # Build & push the final ComfyUI runtime image.
@@ -137,14 +114,9 @@ jobs:
           push: true
           # Push to GitHub Container Registry (GHCR)
           tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui-docker:${{ env.COMFYUI_VERSION }}-torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui:${{ env.COMFYUI_VERSION }}-torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
-          # -------------------------------------------------------------------
-          # Optional: uncomment the lines below to additionally push to Docker Hub.
-          # Make sure to add DOCKERHUB_USERNAME / DOCKERHUB_TOKEN secrets and
-          # enable the "Log in to Docker Hub" step further below.
-          # -------------------------------------------------------------------
-          # tags: |
-          #   ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui:${{ env.COMFYUI_VERSION }}-torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
-          #   docker.io/${{ secrets.DOCKERHUB_USERNAME }}/comfyui:${{ env.COMFYUI_VERSION }}-torch${{ env.TORCH_VERSION }}-${{ env.CUDA_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui-docker:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/comfyui:latest
           labels: |
             org.opencontainers.image.description=ComfyUI ${{ env.COMFYUI_VERSION }} image (amd64, arm64) with Torch ${{ env.TORCH_VERSION }} and CUDA ${{ env.CUDA_TAG }} runtime. Includes NVIDIA CUDA Toolkit components - see https://docs.nvidia.com/cuda/eula/index.html
