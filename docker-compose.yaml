@@ -1,0 +1,28 @@
+services:
+  comfyui:
+    image: comfyui:v0.3.40-cu128
+    runtime: nvidia                      # or "rocm" if you built an AMD image
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all       # tweak as needed
+    expose:
+      - 8188
+    ports:
+      - "8188:8188"                      # web UI
+    # ──────────────────────────────────────────────────
+    volumes:
+      # 1. MODELS ─ everything you download & update
+      - ${DHOST_DATA_DIR}/comfyui/models:/opt/comfyui/models
+      #    ├─ checkpoints/           (SD-1/2, SDXL, Flux, SD 3 etc.)
+      #    ├─ vae/
+      #    ├─ loras/
+      #    ├─ controlnet/
+      #    └─ … (any other model sub-folders)
+      # 2. CUSTOM NODES ─ plug-ins you git-clone or pip-install
+      - ${DHOST_DATA_DIR}/comfyui/custom_nodes:/opt/comfyui/custom_nodes
+      # 3. INPUT  (drag-and-drop source images, video frames…)
+      - ${DHOST_DATA_DIR}/comfyui/input:/opt/comfyui/input
+      # 4. OUTPUT  (all renders land here unless a workflow overrides)
+      - ${DHOST_DATA_DIR}/comfyui/output:/opt/comfyui/output
+      # # 5. OPTIONAL: user configs & overrides
+      # - ${DHOST_DATA_DIR}/comfyui/config:/opt/comfyui/config            # server-config.json etc.
+      # - ${DHOST_DATA_DIR}/comfyui/extra_model_paths.yaml:/opt/comfyui/extra_model_paths.yaml:ro   # if you maintain one

@@ -1,0 +1,24 @@
+# -------------------------------------------------------------------------
+# Stage 1: actual ComfyUI layer  ==> comfyui:cu128
+# -------------------------------------------------------------------------
+FROM comfyui-torch-base:cu128 AS comfyui
+
+ARG PYTHON_VERSION=3.12
+ARG DEBIAN_FRONTEND=noninteractive
+ARG COMFYUI_VERSION=v0.3.40
+
+# RUN curl -L https://github.com/comfyanonymous/ComfyUI/archive/refs/tags/${COMFYUI_VERSION}.tar.gz | \
+#     tar -xz -C /opt/
+
+
+RUN git clone https://github.com/comfyanonymous/ComfyUI.git -b ${COMFYUI_VERSION} /opt/comfyui
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    pwd && ls -ltra --color && \
+    . .venv/bin/activate && uv pip install -r /opt/comfyui/requirements.txt
+
+WORKDIR /opt/comfyui
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8188
+ENTRYPOINT ["/bin/bash"]
+CMD ["-c" , ". /opt/comfyui-torch/.venv/bin/activate && python main.py --listen 0.0.0.0 --port 8188"]
