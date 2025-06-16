@@ -17,7 +17,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Use the official installer which picks the correct binary for amd64/arm64 at build time.
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- -b /usr/local/bin
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="/usr/local/bin" sh
 
 WORKDIR /opt/comfyui-torch
 
