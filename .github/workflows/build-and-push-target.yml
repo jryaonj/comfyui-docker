@@ -110,7 +110,9 @@ jobs:
             TORCHAUDIO_VERSION=${{ env.TORCHAUDIO_VERSION }}
             TORCHVISION_VERSION=${{ env.TORCHVISION_VERSION }}
             COMFYUI_VERSION=${{ env.COMFYUI_VERSION }}
-          platforms: linux/amd64,linux/arm64
+          # no space between platforms, only build amd64 for now
+          # platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           # Push to GitHub Container Registry (GHCR)
           tags: |
