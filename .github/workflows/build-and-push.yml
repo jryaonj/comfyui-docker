@@ -43,11 +43,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CUDA_TAG: ${{ github.event.inputs.cuda_version }}
-      TORCH_VERSION:       ${{ github.event.inputs.torch_version }}
-      TORCHAUDIO_VERSION:  ${{ github.event.inputs.torchaudio_version }}
-      TORCHVISION_VERSION: ${{ github.event.inputs.torchvision_version }}
-
+      CUDA_TAG: ${{ github.event.inputs.cuda_version || 'cu128' }}
+      TORCH_VERSION: ${{ github.event.inputs.torch_version || '2.7.1' }}
+      TORCHAUDIO_VERSION: ${{ github.event.inputs.torchaudio_version || '2.7.1' }}
+      TORCHVISION_VERSION: ${{ github.event.inputs.torchvision_version || '0.22.1' }}
+      COMFYUI_VERSION: ${{ github.event.inputs.comfyui_version || 'v0.3.40' }}
+      
     permissions:
       contents: read
       packages: write

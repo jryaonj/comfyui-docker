@@ -18,18 +18,17 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # revert to original fetch method
-RUN set -e ; \
-    # map BuildKit arch → uv binary arch
+RUN echo "TARGETARCH: ${TARGETARCH}"  && \
     case "${TARGETARCH}" in \
         amd64) UV_ARCH="x86_64-unknown-linux-musl"  ;; \
         arm64) UV_ARCH="aarch64-unknown-linux-musl" ;; \
         *)     echo "Unsupported arch: ${TARGETARCH}" >&2 ; exit 1 ;; \
-    esac ; \
+    esac && \
+    echo "UV_ARCH: ${UV_ARCH}" && \
     curl -L "https://github.com/astral-sh/uv/releases/latest/download/uv-${UV_ARCH}.tar.gz" | \
         tar -xz -C /usr/local/bin && \
         mv /usr/local/bin/uv-${UV_ARCH}/uv* /usr/local/bin/ && \
         rm -rf /usr/local/bin/uv-${UV_ARCH}
-
 
 WORKDIR /opt/comfyui-torch
 
